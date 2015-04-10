@@ -12,7 +12,6 @@
 #define RN_DUMP_TEMP 't'
 #define LHEADER sizeof(RadioHeader)
 
-
 // Possible bug if we hit this exact limit due to no null termination
 
 typedef struct {
@@ -25,8 +24,8 @@ class RadioNode
     public:
         static void setupRadio(const uint8_t frequency, const uint8_t nodeId, const uint8_t network, const bool highPower, const char *encryptKey);
         static void readRadio(RadioHeader *header, char *body);
-        static void sendData(const void *data, uint8_t toAddress, uint8_t lenData);
-        static void sendData(const void *data, uint8_t lenData);
+        static void sendData(const RadioHeader *header, const void *body, uint8_t toAddress, uint8_t lenBody);
+        static void sendData(const RadioHeader *header, const void *body, uint8_t lenBody);
         static uint16_t getAckCount();
         static uint16_t getPacketCount();
         static void testConnection();
@@ -43,5 +42,6 @@ class RadioNode
         static uint32_t packetCount;
         static char encryptKey[RN_KEYLEN];
         static RadioHeader readHeader();
+        static void makePacket(char *buff);
 };
 #endif

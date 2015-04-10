@@ -131,15 +131,18 @@ void RadioNode::executeCommand(char input)
     }
 }
 
-void RadioNode::sendData(const void* data, uint8_t toAddress, uint8_t lenData)
+void RadioNode::sendData(const RadioHeader *header, const void *body, uint8_t toAddress, uint8_t lenBody)
 {
-    radio.sendWithRetry(toAddress, data, lenData);
+    char data[RF69_MAX_DATA_LEN] = {0};
+    memcpy(data, header, LHEADER);
+    memcpy(&data[LHEADER], body, lenBody);
+    radio.sendWithRetry(toAddress, data, lenBody + LHEADER);
 }
 
-void RadioNode::sendData(const void* data, uint8_t lenData)
+void RadioNode::sendData(const RadioHeader *header, const void* body, uint8_t lenBody)
 {
     // Default to the gateway
-    RadioNode::sendData(data, GATEWAYID, lenData);
+    RadioNode::sendData(header, body, GATEWAYID, lenBody);
 }
 
 RFM69 RadioNode::getRadio()
