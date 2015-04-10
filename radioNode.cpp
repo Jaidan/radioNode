@@ -11,11 +11,13 @@
 
 #define GATEWAYID 15 // Reserved ID for gateways
 
+#ifdef DEBUG
 const PROGMEM char debugListening[] = "\nListening at %d Mhz...";
 const PROGMEM char debugReadRadioCount[] = "#[%u][%d] ";
 const PROGMEM char debugReadRadioRXRSSI[] =  "   [RX_RSSI:%u";
-const PROGMEM char debugTemperature[] =  "Radio Temp is %dC, %dF";
 const PROGMEM char debugConnTest[] =  " Pinging node %u - ACK...";
+#endif
+const PROGMEM char debugTemperature[] =  "Radio Temp is %dC, %dF";
 
 void RadioNode::setupRadio(const uint8_t frequency, const uint8_t nodeId,
         const uint8_t network, const bool highPower, const char *encryptKeyPtr)
@@ -23,16 +25,19 @@ void RadioNode::setupRadio(const uint8_t frequency, const uint8_t nodeId,
     radio.initialize(frequency, nodeId, network);
     if (highPower)
     radio.encrypt(encryptKeyPtr);
+#ifdef DEBUG
     char buff[50];
     sprintf_P(
         buff, debugListening,
         frequency == RF69_433MHZ ? 433 : frequency == RF69_868MHZ ? 868 : 915
       );
     Serial.println(buff);
+#endif
 }
 
 void RadioNode::readRadio(RadioHeader *header, char *body)
 {
+#ifdef DEBUG
     char buff[50];
     sprintf_P(buff, debugReadRadioCount, ++packetCount, radio.SENDERID);
     Serial.print(buff);
@@ -42,13 +47,16 @@ void RadioNode::readRadio(RadioHeader *header, char *body)
     }
     sprintf_P(buff, debugReadRadioRXRSSI, radio.RSSI);
     Serial.println(buff);
+#endif
 
     memcpy(header, (const void *)radio.DATA, sizeof(RadioHeader));
     memcpy(body, (const void *)&radio.DATA[LHEADER], radio.DATALEN - LHEADER);
 
     if (radio.ACKRequested()) {
         radio.sendACK();
+#ifdef DEBUG
         Serial.print(F(" - ACK sent."));
+#endif
 
         // When a node requests an ACK, respond to the ACK
         // and also send a packet requesting an ACK (every 3rd one only)
@@ -56,7 +64,9 @@ void RadioNode::readRadio(RadioHeader *header, char *body)
         if (ackCount++ % 3 == 0)
           testConnection();
         }
+#ifdef DEBUG
     Serial.println();
+#endif
     // TODO implement delayless blink
     // blink(LED, 3);  Blinking an LED on radio read would be nice...
     // but how to do it without a delay for this case?
@@ -65,10 +75,12 @@ void RadioNode::readRadio(RadioHeader *header, char *body)
 
 void RadioNode::testConnection()
 {
-  char buff[50];
   uint8_t theNodeId = radio.SENDERID;
+#ifdef DEBUG
+  char buff[50];
   sprintf_P(buff, debugConnTest, theNodeId);
   Serial.print(buff);
+#endif
   delay(3); //need this when sending right after reception .. ?
   if (radio.sendWithRetry(theNodeId, "ACK TEST", 8, 0))  // 0 = only 1 attempt, no retries
     Serial.print(F("ok!"));
