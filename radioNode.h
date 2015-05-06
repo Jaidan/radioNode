@@ -12,6 +12,8 @@
 #define RN_DUMP_TEMP 't'
 #define LHEADER sizeof(RadioHeader)
 
+#define LBODY RF69_MAX_DATA_LEN - LHEADER
+
 // Possible bug if we hit this exact limit due to no null termination
 
 typedef struct {
@@ -42,6 +44,5 @@ class RadioNode
         static uint32_t packetCount;
         static char encryptKey[RN_KEYLEN];
         static RadioHeader readHeader();
-        static void makePacket(char *buff);
 };
 #endif
