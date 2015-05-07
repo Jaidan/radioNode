@@ -16,7 +16,7 @@ const PROGMEM char debugReadRadioCount[] = "#[%u][%d] ";
 const PROGMEM char debugReadRadioRXRSSI[] =  "   [RX_RSSI:%u";
 const PROGMEM char debugConnTest[] =  " Pinging node %u - ACK...";
 const PROGMEM char debugTemperature[] =  "Radio Temp is %dC, %dF";
-const PROGMEM char debugSendRadio[] = "Header: %d, %d\nBody: %d, %s\n";
+const PROGMEM char debugSendRadio[] = "Header: %d, %d\nBody: %d\n";
 
 void RadioNode::setupRadio(const uint8_t frequency, const uint8_t nodeId,
         const uint8_t network, const bool highPower, const char *encryptKeyPtr)
@@ -124,17 +124,16 @@ void RadioNode::executeCommand(char input)
 
 void RadioNode::sendData(const RadioHeader *header, const void *body, uint8_t toAddress, uint8_t lenBody)
 {
-    char data[RF69_MAX_DATA_LEN] = {0};
+    char data[RF69_MAX_DATA_LEN];
     char buff[100];
 
-    sprintf_P(buff, debugSendRadio, header->id, header->packetType, lenBody, body);
+    sprintf_P(buff, debugSendRadio, header->id, header->packetType, lenBody);
     Serial.print(buff);
 
-    memcpy(data, header, LHEADER);
-    memcpy(&data[LHEADER], body, lenBody);
+    memcpy(data, (const void *)header, LHEADER);
+    memcpy(data + LHEADER, body, lenBody);
 
     Serial.println(F("Sending Data"));
-
     radio.sendWithRetry(toAddress, data, lenBody + LHEADER);
 }
 
